@@ -53,4 +53,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             REPOSITORY.deleteTable()
         }
     }
+
+    fun plusAmount(product: Product, onSuccess: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            REPOSITORY.update(Product(id = product.id, product = product.product, amount = product.amount + 1)) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }
+        }
+    }
+
+    fun minusAmount(product: Product, onSuccess: () -> Unit) {
+        val amountItem = if (product.amount <= 0)  0 else product.amount - 1
+
+        viewModelScope.launch(Dispatchers.IO) {
+            REPOSITORY.update(Product(id = product.id, product = product.product, amount = amountItem)) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }
+        }
+    }
 }

@@ -1,10 +1,12 @@
 package com.example.shopinglist.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,6 +16,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,7 +72,8 @@ fun MainScreen(viewModel: MainViewModel) {
                             onValueChange = {
                                 amount = it
                             },
-                            isError = amount.isEmpty()
+                            isError = amount.isEmpty(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                     }
                     Row(
@@ -90,13 +94,21 @@ fun MainScreen(viewModel: MainViewModel) {
                         }
                         Button(
                             onClick = {
-                                viewModel.addProduct(Product(product = nameProduct, amount = amount.toInt())) {
-                                    coroutineScope.launch {
-                                        bottomSheetState.hide()
-                                    }
+                                if (amount.isEmpty() && nameProduct.isEmpty()) {
+                                    Toast.makeText(viewModel.context, "Fields cannot be empty", Toast.LENGTH_SHORT).show()
                                 }
-                                nameProduct = ""
-                                amount = ""
+                                else if (amount < "0") {
+                                    Toast.makeText(viewModel.context, "The Amount field can not have a negative value", Toast.LENGTH_SHORT).show()
+                                }
+                                else {
+                                    viewModel.addProduct(Product(product = nameProduct, amount = amount.toInt())) {
+                                        coroutineScope.launch {
+                                            bottomSheetState.hide()
+                                        }
+                                    }
+                                    nameProduct = ""
+                                    amount = ""
+                                }
                             }
                         ) {
                             Text(text = "ADD")
@@ -181,13 +193,25 @@ fun ProductItem(product: Product, viewModel: MainViewModel) {
             Icon(
                 imageVector = Icons.Filled.AddCircle,
                 contentDescription = "Plus",
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colors.primary
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable {
+                               viewModel.plusAmount(product) {
+
+                               }
+                    },
+                tint = MaterialTheme.colors.primary,
             )
             Icon(
                 imageVector = Icons.Filled.Refresh,
                 contentDescription = "Plus",
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable {
+                               viewModel.minusAmount(product) {
+
+                               }
+                    },
                 tint = MaterialTheme.colors.primary
             )
         }
